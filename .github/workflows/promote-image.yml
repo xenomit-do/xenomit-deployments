@@ -1,0 +1,60 @@
+name: promote-image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Image key from the promotion allowlist
+        required: true
+        type: choice
+        options: [orchestrator, web-panel, botd]
+      digest:
+        description: Immutable sha256 digest
+        required: true
+        type: string
+      source_repository:
+        description: Expected source repository
+        required: true
+        type: string
+      source_sha:
+        description: Source commit SHA
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-${{ inputs.image }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.ref == 'refs/heads/main'
+    runs-on: xenomit-platform
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Mint deployment PR token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: xenomit-do
+          repositories: xenomit-deployments
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Promote image digest
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          RUN_ID: ${{ github.run_id }}
+          PAYLOAD_IMAGE: ${{ inputs.image }}
+          PAYLOAD_DIGEST: ${{ inputs.digest }}
+          PAYLOAD_SOURCE_REPOSITORY: ${{ inputs.source_repository }}
+          PAYLOAD_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: python3 scripts/promote_image.py
