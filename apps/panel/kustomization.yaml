@@ -1,5 +1,5 @@
 # Independently deployed web panel. The digest is promoted by
-# ci/workflows/images.yml alongside the control-plane image.
+# xenomit-web-panel/.github/workflows/image.yml then promoted by deployments CI.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
