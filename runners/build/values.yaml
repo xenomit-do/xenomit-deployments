@@ -1,0 +1,22 @@
+gha-runner-scale-set:
+  githubConfigUrl: https://github.com/xenomit-do
+  githubConfigSecret: github-arc
+  runnerGroup: xenomit-build
+  runnerScaleSetName: xenomit-build
+  minRunners: 1
+  maxRunners: 2
+  controllerServiceAccount:
+    namespace: arc-system
+    name: arc-gha-rs-controller
+  containerMode: {type: dind}
+  template:
+    metadata:
+      labels: {xenomit.io/job-runner: "true"}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {fsGroup: 1001}
+      containers:
+        - name: runner
+          image: ghcr.io/actions/actions-runner:2.332.0
+          command: [/home/runner/run.sh]
+          resources: {requests: {cpu: 250m, memory: 512Mi}, limits: {cpu: '2', memory: 4Gi}}
