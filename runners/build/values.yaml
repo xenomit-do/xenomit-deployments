@@ -17,6 +17,6 @@ gha-runner-scale-set:
       securityContext: {fsGroup: 1001}
       containers:
         - name: runner
-          image: ghcr.io/actions/actions-runner:2.332.0
+          image: ghcr.io/actions/actions-runner:2.338.0
           command: [/home/runner/run.sh]
           resources: {requests: {cpu: 250m, memory: 512Mi}, limits: {cpu: '2', memory: 4Gi}}
